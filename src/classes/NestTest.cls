@@ -71,6 +71,30 @@ private class NestTest
         System.assertEquals( 1, oneTwo.size() );
     }
 
+    static testMethod void map_aggregateRollup()
+    {
+        List<Object> records = new List<Object>{
+            m().foo(1).bar(2),
+            m().foo(1).bar(0),
+            m().foo(1).bar(1),
+            m().foo(2)
+        };
+
+        Nest sumBar = new Nest()
+            .key( f('foo') )
+            .rollup( sum('bar') );
+
+        Test.startTest();
+
+            Object barByFoo = sumBar.doMap( records );
+
+        Test.stopTest();
+
+        Map<Object, Object> fooBar = (Map<Object, Object>)barByFoo;
+        System.assertEquals( 3, fooBar.get(1) );
+        System.assertEquals( 0, fooBar.get(2) );
+    }
+
     static MyRecord m()
     {
         return new MyRecord();
@@ -79,6 +103,11 @@ private class NestTest
     static MyAccessor f( String field )
     {
         return new MyAccessor( field );
+    }
+
+    static MyAggregator sum( String field )
+    {
+        return new MyAggregator( field );
     }
 
     class MyRecord
@@ -115,6 +144,27 @@ private class NestTest
         public Object getFrom( Object record )
         {
             return ((MyRecord)record).get( key );
+        }
+    }
+
+    public class MyAggregator implements Aggregator
+    {
+        String key;
+
+        MyAggregator( String key )
+        {
+            this.key = key;
+        }
+
+        public Object rollup( List<Object> records )
+        {
+            Integer sum = 0;
+            for ( Object record : records )
+            {
+                Integer val = (Integer)((MyRecord)record).get( key );
+                sum += val == null ? 0 : val;
+            }
+            return sum;
         }
     }
 }

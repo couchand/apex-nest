@@ -7,15 +7,20 @@ global class Nest
 //      sortKeys = [],
 //      sortValues,
 //      rollup;
+    Aggregator rollup;
 
 //  function map(mapType, array, depth) {
     Object doMap( List<Object> records, Integer depth )
     {
 //    if (depth >= keys.length) return rollup
+        if ( depth >= keys.size() )
+        {
 //        ? rollup.call(nest, array) : (sortValues
+            if ( rollup != null ) return rollup.rollup( records );
 //        ? array.sort(sortValues)
 //        : array);
-        if ( depth >= keys.size() ) return records;
+            return records;
+        }
 //
 //    var i = -1,
 //        n = array.length,
@@ -123,9 +128,15 @@ global class Nest
 //  };
 
 //  nest.rollup = function(f) {
+    global Nest rollup( Aggregator f )
+    {
 //    rollup = f;
+        this.rollup = f;
 //    return nest;
+        return this;
 //  };
+    }
+
 //  return nest;
 //};
 }
